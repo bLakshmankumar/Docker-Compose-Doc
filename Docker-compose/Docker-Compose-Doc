@@ -1,0 +1,123 @@
+#                                                                                   Docker-Compose - 1(8)
+#									       -------------------------------
+
+# How to create a docker image with new build number -:
+-------------------------------------------------------
+# docker build -t Imagename:${BUILD_NUMBER}
+
+Befor going to Docker-Compose let's talk about real life application first -:
+------------------------------------------------------------------------------
+ > Let's Sometimes one application concists of multiple containers.
+ > One container is dependent on another.
+ > Mutual dependency/ startup order( we need to start a containers in a proper order).
+ > Process involves building images and then deploy them.
+ > If we wanna deploy an application we need to execute Long Docker run commands
+ > Complexity is proprtional to the num of containers involved.
+ > For ex if we wanna deploy two applications we need to execute a lots of coomands 
+ 
+ > So where we can overcome these problems for that we use docker compose.
+ 
+> Docker-Compose -:
+----------------------------
+ > Docker-Compose it's a tool using which we can deploy multi/single container applications.
+ > By using Docker-compose to we csn create docker resources
+ > it's a Tool for defining and running multi-container Docker application
+ > It is a YML file.
+ > Compose contains information about how to build the containers and deploy containers.
+ > Integrated with Docker Swarm.
+ > Competes with k8s.
+ 
+> Note -:
+-----------
+ > Generally the containers in an application built using Docker Compose will all run on the same host. Managing Containers running on different hosts usually requires an additional tool,'such as Docker Swarm or K8s.
+ 
+Install Docker-compose -:
+---------------------------------
+  > sudo apt install docker-compose -y
+ 
+ > what are the root attributes we will have in a docker compose file -:
+ -----------------------------------------------------------------------
+ version: Here we define a compose file format versions.
+ services: Container information we define under services attribute.
+ volumes: Volume information we define under volume attribute.
+ networks: network information we define under network attribute.
+ depends_on : If we wanna create mongo service first then only we wanna create a springapp service we use depends_on attribute.
+#   $These are the Root attributes of Docker Compose File$
+ 
+> Default name of Docker-compose file -:
+----------------------------------------
+  > docker-compose.yml or docker-compose.yaml
+
+> Let's Create a docker compose file -:
+---------------------------------------
+ > vi docker-compose.yaml
+ 
+  version: '3.2'
+  services:
+     springapp(This name should anything): 
+	     image: provide image name:1 (or) BUILD_NUMBER (before that create this docker image with (docker build -t imagename:${BUILD_NUMBER}
+		 depends_on: mongo 
+		 ports:
+		 - 8080:8080
+		 - 50000:50000
+		 networks:
+		 - springappnetwork
+		 environment:
+		 - MONGO_DB_HOSTNAME=mongo
+		 - MONGO_DB_USERNAME=devdb
+		 - MONGO_DB_PASSWORD=devdb@123
+		 container_name: springappcontainer (This option will deprecated in future releases)
+    > Now i wanna create another service
+      mongo:
+	      image: mongo:2
+		  environment:
+		  - MONGO_DB_ROOT_USERNAME=devdb
+		  - MONGO_DB_ROOT_PASSWORD=devdb@123
+		  volumes:
+		  - mongodbvol:/data/db:ro(this is optional)
+		  
+> (If you wanna create new volume we can use)		  
+   volumes:
+      mogodbvol:
+	     driver: rexray/ebs or local
+	 (If i wanna add another volume)   
+	  mongodbconfig:
+	     driver: rexray/ebs
+#         		(or)
+
+> ( If you wanna use existing volumes only and don't wanna create new volumes we can use)
+  volumes:
+    mongodbvol:
+	    external: true
+    > Note -: (If that existing volume is not available we will get an error)
+
+>  (If you wanna create new network we can use)			
+  networks: network  information we define under network attribute
+     Springnetwork:
+	    driver: bridge
+#                	(or)
+
+> ( If you wanna use existing network only and don't wanna create new network we can use)
+  networks: network  information we define under network attribute
+     Springnetwork:
+	    driver: bridge	
+  > Note -: (If that existing network is not available we will get an error)
+
+> First it'll create a vloume and network and it'll refer to servicves
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+click on esc and shift : and wq! to save the file
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> Now we can use docker-compose commands -:
+--------------------------------------------------------------
+ > docker-compose config filename -: by using this command we can validate our compose file whether we using proper docker-compose attributes or not
+ > docker-compose create -: 
+ > docker-compose up -d -: It'll create a docker resources which we defined in docker-compose file.(it'll support only two names docker-compose.yml or docker-compose.yaml)
+ > docker-compose -f filename up -d -: It'll create a docker resources which we defined in our docker-compose file.
+ > docker-compose down -: It'll stop the containers and remove the containers. but it won't remove the volumes.
+ > docker-compose stop -: It'll stop the docker-compose file containers only.
+ > docker-compose restart -: 
+ 
+> How two containers are communicating -:
+-------------------------------------------------------
+  > using Service names the containers are communicating together.(We mention springapp services under env we provifde hostname as a mongo(It's a service name of mongo))
+  
